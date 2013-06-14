@@ -18,6 +18,7 @@ Requires: zlib-toolfile
 Requires: cppunit-toolfile
 Requires: xerces-c-toolfile
 Requires: oracle-toolfile
+Requires: icc-gcc-toolfile
 Requires: systemtools
 %else
 Requires: onlinesystemtools

@@ -1,4 +1,8 @@
 ### RPM external nss 3.12.9
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" == "true"
+Requires: icc
+%endif
 Source: https://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_%(echo %realversion | tr . _)_RTM/src/nss-%realversion.tar.gz
 Requires: nspr zlib sqlite
 Patch0: nss-3.12.6-remove-appleisms
@@ -20,6 +24,10 @@ export NSS_USE_SYSTEM_SQLITE=1
 export SQLITE_INCLUDE_DIR="$SQLITE_ROOT/include"
 export SQLITE_LIBS_DIR="-L$SQLITE_ROOT/lib"
 export USE_64=1
+%if "%mic" == "true"
+export CXX="icpc -fPIC -mmic"
+export CC="icc -fPIC -mmic"
+%endif
 
 make -C ./mozilla/security/coreconf clean
 make -C ./mozilla/security/dbm clean

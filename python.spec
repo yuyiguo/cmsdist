@@ -6,7 +6,13 @@
 # OS X patches and build fudging stolen from fink
 %{expand:%%define python_major_version %(echo %realversion | cut -d. -f1,2)}
 %define online %(case %cmsplatf in (*onl_*_*) echo true;; (*) echo false;; esac)
-
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%define hostpython %{nil}
+%if "%mic" == "true"
+Requires: icc
+%define hostpython_dir %{_builddir}/Python-%{realversion}.host
+%define hostpython HOSTPYTHON="LD_PRELOAD=%{hostpython_dir}/libpython%{python_major_version}.so.1.0 %{hostpython_dir}/python" HOSTPGEN="LD_PRELOAD=%{hostpython_dir}/libpython%{python_major_version}.so.1.0 %{hostpython_dir}/Parser/pgen" CROSS_COMPILE=k1om- CROSS_COMPILE_TARGET=yes HOSTARCH=k1om BUILDARCH=x86_64-linux-gnu
+%endif
 Requires: expat bz2lib db4 gdbm openssl
 
 %if "%online" != "true"
@@ -17,12 +23,17 @@ Requires: zlib sqlite readline
 # FIXME: gmp, panel, tk/tcl, x11
 
 Source0: http://www.python.org/ftp/%n/%realversion/Python-%realversion.tgz
+Source1: python-2.7.3-xcompile
 Patch0: python-2.7.3-dont-detect-dbm
 Patch1: python-fix-macosx-relocation
 Patch2: python-2.7.3-fix-pyport
 Patch3: python-2.7.3-ssl-fragment
 
 %prep
+%if "%mic" == "true"
+rm -rf %{hostpython_dir}
+%endif
+
 %setup -n Python-%realversion
 find . -type f | while read f; do
   if head -n1 $f | grep -q /usr/local; then
@@ -50,7 +61,6 @@ done
 # see above for the commented-out list of packages that could be
 # linked specifically, or could be built by ourselves, depending on
 # whether we like to pick up system libraries or want total control.
-#mkdir -p %i/include %i/lib
 mkdir -p %i/include %i/lib %i/bin
 
 %if "%online" != "true"
@@ -81,6 +91,16 @@ sed -ibak "s/ndbm_libs = \[\]/ndbm_libs = ['gdbm', 'gdbm_compat']/" setup.py
 
 ./configure --prefix=%i $additionalConfigureOptions --enable-shared
 
+%define cxx g++
+%if "%mic" == "true"
+%define cxx icpc -mmic
+make %makeprocesses
+cp -r %{_builddir}/Python-%{realversion} %{hostpython_dir}
+make distclean
+patch -p1 < %{_sourcedir}/python-2.7.3-xcompile
+./configure --prefix=%i $additionalConfigureOptions --enable-shared CC="icc -mmic"  CXX="%{cxx}" --host=x86_64 --without-gcc
+%endif
+
 # Modify pyconfig.h to match macros from GLIBC features.h on Linux machines.
 # _POSIX_C_SOURCE and _XOPEN_SOURCE macros are not identical anymore
 # starting GLIBC 2.10.1. Python.h is not included before standard headers
@@ -98,7 +118,7 @@ int main() {
 }
 CMS_EOF
 
-    FEATURES=$(g++ -dM -E -DGNU_GCC=1 -D_GNU_SOURCE=1 -D_DARWIN_SOURCE=1 cms_configtest.cpp \
+    FEATURES=$(%cxx -dM -E -DGNU_GCC=1 -D_GNU_SOURCE=1 -D_DARWIN_SOURCE=1 cms_configtest.cpp \
       | grep -E '_POSIX_C_SOURCE |_XOPEN_SOURCE ')
     rm -f cms_configtest.cpp a.out
 
@@ -114,13 +134,13 @@ esac
 # Triggers an error if -Werror=format is used with GNU GCC 4.8.0+.
 sed -ibak "s/\(#define HAVE_ATTRIBUTE_FORMAT_PARSETUPLE .*\)/\/* \1 *\//g" pyconfig.h
 
-make %makeprocesses
+make %makeprocesses %{hostpython}
 
 %install
 # We need to export it because setup.py now uses it to determine the actual
 # location of DB4, this was needed to avoid having it picked up from the system.
 export DB4_ROOT
-make install
+make install %{hostpython}
 %define pythonv %(echo %realversion | cut -d. -f 1,2)
 
 case %cmsplatf in
@@ -189,6 +209,19 @@ for tool in $(echo %{requiredtools} | sed -e's|\s+| |;s|^\s+||'); do
   fi
 done
 
+%if "%mic" == "true"
+mkdir %i/host
+cp %{hostpython_dir}/python %i/host
+cp %{hostpython_dir}/libpython%{python_major_version}.so.1.0 %i/host
+echo '#!/bin/sh' > %i/host/hostpython
+echo 'LD_PRELOAD=%{i}/host/libpython%{python_major_version}.so.1.0 %{i}/host/python $@' >> %i/host/hostpython
+chmod +x %i/host/hostpython
+%endif
+
 %post
-%{relocateConfig}lib/python2.7/config/Makefile
+%{relocateConfig}lib/python%{python_major_version}/config/Makefile
 %{relocateConfig}etc/profile.d/dependencies-setup.*sh
+%if "%mic" == "true"
+%{relocateConfig}host/hostpython
+%endif
+

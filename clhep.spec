@@ -1,8 +1,14 @@
 ### RPM external clhep 2.1.3.1
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" == "true"
+Requires: icc
+%endif
 Source: http://proj-clhep.web.cern.ch/proj-clhep/DISTRIBUTION/distributions/%n-%realversion.tgz
 Patch0: clhep-2.1.1.0-no-virtual-inline
 
+%if "%mic" != "true"
 BuildRequires: cmake
+%endif
 
 %if "%{?cms_cxx:set}" != "set"
 %define cms_cxx g++
@@ -22,12 +28,18 @@ case %cmsplatf in
 esac
 
 %build
+rm -rf ../build
 mkdir ../build
 cd ../build
 
+%define cxx_flags %{nil}
+%if "%mic" == "true"
+%define cms_cxx icpc
+%define cxx_flags -fPIC -mmic
+%endif
 cmake ../CLHEP \
   -DCMAKE_CXX_COMPILER="%cms_cxx" \
-  -DCMAKE_CXX_FLAGS="%{cms_cxxflags}" \
+  -DCMAKE_CXX_FLAGS="%{cms_cxxflags} %{cxx_flags}" \
   -DCMAKE_INSTALL_PREFIX:PATH="%i" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 

@@ -1,6 +1,10 @@
 ### RPM external pcre 7.9
 Source: http://downloads.sourceforge.net/%n/%n-%{realversion}.tar.bz2
-Requires: bz2lib
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" == "true"
+Requires: icc
+%endif
+Requires: bz2lib zlib readline
 
 %if "%{?cms_cxx:set}" != "set"
 %define cms_cxx c++ -std=c++0x
@@ -9,29 +13,22 @@ Requires: bz2lib
 %prep
 %setup -n %n-%{realversion}
 %build
-CPPFLAGS="-I${BZ2LIB_ROOT}/include"
-LDFLAGS="-L${BZ2LIB_ROOT}/lib"
-./configure --enable-unicode-properties --enable-pcregrep-libz --enable-pcregrep-libbz2 --prefix=%i \
-  CXX="%cms_cxx" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}"
+CPPFLAGS="-I${BZ2LIB_ROOT}/include -I${ZLIB_ROOT}/include -I${READLINE_ROOT}/include"
+LDFLAGS="-L${BZ2LIB_ROOT}/lib -L${ZLIB_ROOT}/include -L${READLINE_ROOT}/lib"
+case %{cmsplatf} in
+   *_mic_* )
+     CXX="icpc -fPIC -mmic"  CC="icc -fPIC -mmic" ./configure --enable-unicode-properties --enable-pcregrep-libbz2 --enable-pcregrep-libbz --prefix=%i \
+     CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" --host=x86_64-k1om-linux
+     ;;
+   * )
+     ./configure --enable-unicode-properties --enable-pcregrep-libz --enable-pcregrep-libbz2 --prefix=%i \
+     CXX="%cms_cxx" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}"
+     ;;
+esac
 make
 
 %install
 make install
-# SCRAM ToolBox toolfile
-mkdir -p %i/etc/scram.d
-cat << \EOF_TOOLFILE >%i/etc/scram.d/%n
-<doc type=BuildSystem::ToolDoc version=1.0>
-<Tool name=%n version=%v>
-<info url="http://www.pcre.org"></info>
-<lib name=pcre>
-<Client>
- <Environment name=PCRE_BASE default="%i"></Environment>
- <Environment name=LIBDIR default="$PCRE_BASE/lib"></Environment>
- <Environment name=INCLUDE default="$PCRE_BASE/include"></Environment>
-</Client>
-</Tool>
-EOF_TOOLFILE
-
 # setup dependencies environment
 rm -rf %i/etc/profile.d
 mkdir -p %i/etc/profile.d
@@ -57,7 +54,6 @@ rm -f %i/lib/*.{l,}a
 
 %post
 %{relocateConfig}bin/pcre-config
-%{relocateConfig}etc/scram.d/%n
 
 # The relocation is also needed because of dependencies
 %{relocateConfig}etc/profile.d/dependencies-setup.sh

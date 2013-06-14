@@ -1,5 +1,10 @@
 ### RPM external gccxml 20110825 
-Requires: cmake
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" != "true"
+BuildRequires: cmake
+%else
+Requires: icc
+%endif
 Source: http://service-spi.web.cern.ch/service-spi/external/tarFiles/%n-%realversion.tgz
 Patch0: gccxml-0.9.0_20100308-gcc45-iomanip
 Patch1: gccxml-20110825-add-support-for-gcc-4.7
@@ -17,11 +22,13 @@ perl -p -i -e 's|-no-cpp-precomp||g' GCC/CMakeLists.txt \
   ;;
 esac
 %build
-cd GCC_XML/Support
-cd ../../
 mkdir gccxml-build
 cd gccxml-build
+%if "%mic" == "true"
+cmake -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc -DCMAKE_INSTALL_PREFIX:PATH=%i ..
+%else
 cmake -DCMAKE_INSTALL_PREFIX:PATH=%i ..
+%endif
 make %makeprocesses
 
 %install

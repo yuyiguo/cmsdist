@@ -1,13 +1,27 @@
 ### RPM external fftw3 3.3.2
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" == "true"
+Requires: icc
+%endif
 Source: http://www.fftw.org/fftw-%realversion.tar.gz
 
 %prep
 %setup -n fftw-%realversion
 
 %build
-./configure --with-pic --enable-shared --enable-sse2 --enable-threads \
-  --disable-dependency-tracking --disable-fortran --disable-mpi --disable-openmp \
-  --prefix=%i
+case %{cmsplatf} in
+   *_mic_* )
+    CXX="icpc -fPIC -mmic"  CC="icc -fPIC -mmic" \
+   ./configure --with-pic --enable-shared --enable-sse2 --enable-threads \
+     --disable-dependency-tracking --disable-fortran --disable-mpi --disable-openmp \
+     --prefix=%i --host=x86_64-k1om-linux
+     ;;
+   * )
+   ./configure --with-pic --enable-shared --enable-sse2 --enable-threads \
+     --disable-dependency-tracking --disable-fortran --disable-mpi --disable-openmp \
+     --prefix=%i
+     ;;
+esac
 make %makeprocesses
 
 %install

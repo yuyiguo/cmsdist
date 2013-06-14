@@ -1,6 +1,10 @@
 ### RPM external libpng 1.2.46
 Source: http://downloads.sourceforge.net/libpng/libpng12/%realversion/%n-%realversion.tar.bz2
 %define online %(case %cmsplatf in (*onl_*_*) echo true;; (*) echo false;; esac)
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
+%if "%mic" == "true"
+Requires: icc
+%endif
 
 %if "%online" != "true"
 Requires: zlib
@@ -10,7 +14,11 @@ Requires: zlib
 %setup -n %n-%{realversion}
  
 %build
+%if "%mic" == "true"
+CXX="icpc -fPIC -mmic"  CC="icc -fPIC -mmic -I$ZLIB_ROOT/include -L$ZLIB_ROOT/lib" ./configure --prefix=%{i} --enable-static=no --host=x86_64-k1om-linux
+%else
 ./configure --prefix=%{i} --enable-static=no
+%endif
 make %makeprocesses
 
 %install

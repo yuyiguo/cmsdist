@@ -1,4 +1,5 @@
 ### RPM cms coral CORAL_2_3_21
+%define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
 Requires: coral-tool-conf
 Patch0: coral-2_3_20-macosx
 Patch1: coral-2_3_21-slc6
@@ -23,6 +24,10 @@ Patch5: coral-CORAL_2_3_21-move-to-libuuid
 # Disable building tests, since they bring dependency on cppunit:
 %define patchsrc4       perl -p -i -e 's!(<classpath.*/tests\\+.*>)!!;' config/BuildFile.xml
 %define patchsrc3       %patch0 -p1 
+%endif
+
+%if "%mic" == "true"
+%define patchsrc4       sed -i -e 's|</client>|<architecture name="_mic_"><flags DEFAULT_COMPILER="icc"/></architecture></client>|' config/Self.xml; rm -rf src/OracleAccess
 %endif
 
 %define patchsrc5       %patch5 -p0
