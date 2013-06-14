@@ -1,4 +1,4 @@
-### RPM cms cmssw-mic CMSSW_6_2_0_pre7_MIC
+### RPM cms cmssw-mic CMSSW_6_2_0_pre7
 %define mic %(case %cmsplatf in (*_mic_*) echo true;; (*) echo false;; esac)
 %define ucprojtype CMSSW
 Requires: cmssw-mic-tool-conf python
