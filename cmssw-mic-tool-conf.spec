@@ -30,6 +30,7 @@ Requires: libjpg-toolfile
 Requires: libpng-toolfile
 Requires: elementtree-toolfile
 Requires: gccxml-toolfile
+Requires: freetype-toolfile
 Requires: systemtools
 
 %define skipreqtools jcompiler lhapdfwrapfull lhapdffull 
