@@ -37,7 +37,7 @@ cd ../build
 %define cms_cxx icpc
 %define cxx_flags -fPIC -mmic
 %endif
-cmake ../CLHEP \
+CXXFLAGS="%{cms_cxxflags} %{cxx_flags}" cmake ../CLHEP \
   -DCMAKE_CXX_COMPILER="%cms_cxx" \
   -DCMAKE_CXX_FLAGS="%{cms_cxxflags} %{cxx_flags}" \
   -DCMAKE_INSTALL_PREFIX:PATH="%i" \
