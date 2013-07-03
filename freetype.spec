@@ -27,6 +27,10 @@ install_name_tool -id %i/lib/libfreetype-cms.dylib -change %i/lib/libfreetype.6.
 ln -s libfreetype.6.dylib %i/lib/libfreetype-cms.dylib
 perl -p -i -e 's|-lfreetype|-lfreetype-cms|' %i/bin/freetype-config
   ;;
+  *_mic)
+ln -s libfreetype.so %i/lib/libfreetype-cms.so
+perl -p -i -e 's|-lfreetype|-lfreetype-cms|' %i/bin/freetype-config
+  ;;
 esac
 
 # Strip libraries, we are not going to debug them.
