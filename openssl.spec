@@ -27,7 +27,11 @@ Patch1: openssl-x86-64-gcc420
 # fooled by linux32). A quick fix is to just set the variable
 # to "" but we should probably understand how rpm determines
 # those flags and use them for our own good.
+%if "%mic" == "true"
+export RPM_OPT_FLAGS="-O2 -fPIC -g -pipe -Wall -Wa,--noexecstack -fno-strict-aliasing -Wp,-DOPENSSL_USE_NEW_FUNCTIONS -Wp,-D_FORTIFY_SOURCE=2 -fexceptions --param=ssp-buffer-size=4 -mtune=generic"
+%else
 export RPM_OPT_FLAGS="-O2 -fPIC -g -pipe -Wall -Wa,--noexecstack -fno-strict-aliasing -Wp,-DOPENSSL_USE_NEW_FUNCTIONS -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic"
+%endif
 
 cfg_opts="no-idea no-mdc2 no-rc5 no-ec no-ecdh no-ecdsa shared fipscanisterbuild"
 
@@ -53,7 +57,11 @@ sed -i -e 's| gcc *$|icc|g' Makefile
 sed -i -e 's|#SET_X=|SET_X=|' Makefile.shared
 make
 %install
+%if "%mic" == "true"
+export RPM_OPT_FLAGS="-O2 -fPIC -g -pipe -Wall -Wa,--noexecstack -fno-strict-aliasing -Wp,-DOPENSSL_USE_NEW_FUNCTIONS -Wp,-D_FORTIFY_SOURCE=2 -fexceptions --param=ssp-buffer-size=4 -mtune=generic"
+%else
 export RPM_OPT_FLAGS="-O2 -fPIC -g -pipe -Wall -Wa,--noexecstack -fno-strict-aliasing -Wp,-DOPENSSL_USE_NEW_FUNCTIONS -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -mtune=generic"
+%endif
 
 make install
 
