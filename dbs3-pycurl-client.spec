@@ -5,7 +5,8 @@
 #%define webdoc_files %{installroot}/%{pkgrel}/doc/
 %define cvstag %(echo %{realversion} | sed 's/[.]/_/g; s/^/DBS_/')
 %define svnserver svn://svn.cern.ch/reps/CMSDMWM
-Source0: %svnserver/DBS/tags/%cvstag?scheme=svn+ssh&strategy=export&module=DBS&output=/%{n}.tar.gz
+#Source0: %svnserver/DBS/tags/%cvstag?scheme=svn+ssh&strategy=export&module=DBS&output=/%{n}.tar.gz
+Source0: http://test-dbs3.web.cern.ch/test-dbs3/DBS.tar.gz
 Requires: python py2-cjson py2-pycurl curl
 BuildRequires: py2-sphinx
 

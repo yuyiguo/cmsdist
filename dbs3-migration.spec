@@ -8,7 +8,8 @@
 %define svnserver svn://svn.cern.ch/reps/CMSDMWM
 %define gitserver https://nodeload.github.com
 Source0: git://github.com/dmwm/WMCore.git?obj=master/%{wmcver}&export=WMCore&output=/WMCore4%{n}.tar.gz
-Source1: %svnserver/DBS/tags/%cvstag?scheme=svn+ssh&strategy=export&module=DBS&output=/%{n}.tar.gz
+#Source1: %svnserver/DBS/tags/%cvstag?scheme=svn+ssh&strategy=export&module=DBS&output=/%{n}.tar.gz
+Source1: http://test-dbs3.web.cern.ch/test-dbs3/DBS.tar.gz
 
 Requires: python py2-simplejson py2-sqlalchemy py2-httplib2 cherrypy py2-cheetah yui
 Requires: py2-cjson py2-mysqldb py2-cx-oracle dbs3-pycurl-client rotatelogs
