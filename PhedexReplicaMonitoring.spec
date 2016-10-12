@@ -1,25 +1,25 @@
-### RPM external py2-pandas 0.18.1
+### RPM cms PhedexReplicaMonitoring v00.00.06
 ## INITENV +PATH PYTHONPATH %i/${PYTHON_LIB_SITE_PACKAGES}
-#Source: https://pypi.python.org/packages/source/p/pandas/pandas-%realversion.tar.gz
-Source: https://pypi.python.org/packages/11/09/e66eb844daba8680ddff26335d5b4fead77f60f957678243549a8dd4830d/pandas-0.18.1.tar.gz
-Requires: python py2-numpy py2-python-dateutil py2-setuptools py2-pytz
+%define pkg PhedexReplicaMonitoring
+Source: git://github.com/dmwm/PhedexReplicaMonitoring?obj=master/%realversion&export=%pkg&output=/%pkg.tar.gz
+Requires: python py2-py4j java-jdk elasticsearch elasticsearch-hadoop kibana rotatelogs
+BuildRequires: py2-sphinx
 
+# RPM macros documentation
+# http://www.rpm.org/max-rpm/s1-rpm-inside-macros.html
 %prep
-%setup -n pandas-%realversion
+%setup -b 0 -n %pkg
 
 %build
-%install
-case %cmsos in
-  osx*) SONAME=dylib ;;
-  *) SONAME=so ;;
-esac
+#cd %pkg
 
-mkdir -p %i/$PYTHON_LIB_SITE_PACKAGES
-PYTHONPATH=%i/$PYTHON_LIB_SITE_PACKAGES:$PYTHONPATH \
-python setup.py install --prefix=%i
-find %i -name '*.egg-info' -exec rm {} \;
-find %i/$PYTHON_LIB_SITE_PACKAGES -name '*.py' -exec chmod a-x {} \;
-perl -p -i -e 's{^#!.*/python}{#!/usr/bin/env python}' %i/bin/*
+%install
+mkdir -p %i/${PYTHON_LIB_SITE_PACKAGES}
+mkdir -p %i/bin
+cp -r src/python/* %i/${PYTHON_LIB_SITE_PACKAGES}
+cp src/scripts/*.sh %i/bin
+cp -r data %i/
+cp -r etc %i/
 
 # Generate dependencies-setup.{sh,csh} so init.{sh,csh} picks full environment.
 mkdir -p %i/etc/profile.d

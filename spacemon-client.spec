@@ -1,24 +1,24 @@
-### RPM external py2-scikit-learn 0.16.1
-## INITENV +PATH PYTHONPATH %i/${PYTHON_LIB_SITE_PACKAGES}
-Source: https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-%realversion.tar.gz
-Requires: python py2-numpy py2-scipy py2-matplotlib
+### RPM cms spacemon-client 1.0.1
+## NOCOMPILER
+## INITENV +PATH PERL5LIB %i
+## INITENV +PATH PATH %i/DMWMMON/SpaceMon/Utilities
+
+%define downloadn %(echo %n | cut -f1 -d-)
+%define downloadm DMWMMON
+%define downloadt %(echo %realversion | tr '.' '_')
+%define setupdir  %{downloadm}-%{n}_%{downloadt}
+Source: https://github.com/dmwm/DMWMMON/archive/%{n}_%{downloadt}.tar.gz
 
 %prep
-%setup -n scikit-learn-%realversion
 
+%setup -n %{setupdir}
+ 
 %build
-%install
-case %cmsos in
-  osx*) SONAME=dylib ;;
-  *) SONAME=so ;;
-esac
 
-mkdir -p %i/$PYTHON_LIB_SITE_PACKAGES
-PYTHONPATH=%i/$PYTHON_LIB_SITE_PACKAGES:$PYTHONPATH \
-python setup.py install --prefix=%i
-find %i -name '*.egg-info' -exec rm {} \;
-find %i/$PYTHON_LIB_SITE_PACKAGES -name '*.py' -exec chmod a-x {} \;
-perl -p -i -e 's{^#!.*/python}{#!/usr/bin/env python}' %i/bin/*
+%install
+# Get all SpaceMon sources into DMWMMON, as module names expect it:
+mkdir -p %i/DMWMMON
+tar -c SpaceMon | tar -x -C %i/DMWMMON
 
 # Generate dependencies-setup.{sh,csh} so init.{sh,csh} picks full environment.
 mkdir -p %i/etc/profile.d
@@ -34,3 +34,4 @@ done
 
 %post
 %{relocateConfig}etc/profile.d/dependencies-setup.*sh
+

@@ -1,25 +1,17 @@
-### RPM external py2-pandas 0.18.1
+### RPM external elasticsearch 2.4.0
 ## INITENV +PATH PYTHONPATH %i/${PYTHON_LIB_SITE_PACKAGES}
-#Source: https://pypi.python.org/packages/source/p/pandas/pandas-%realversion.tar.gz
-Source: https://pypi.python.org/packages/11/09/e66eb844daba8680ddff26335d5b4fead77f60f957678243549a8dd4830d/pandas-0.18.1.tar.gz
-Requires: python py2-numpy py2-python-dateutil py2-setuptools py2-pytz
+
+Source: https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/%{realversion}/elasticsearch-%{realversion}.tar.gz
+Requires: java-jdk
 
 %prep
-%setup -n pandas-%realversion
+%setup -n elasticsearch-%realversion
 
 %build
-%install
-case %cmsos in
-  osx*) SONAME=dylib ;;
-  *) SONAME=so ;;
-esac
 
-mkdir -p %i/$PYTHON_LIB_SITE_PACKAGES
-PYTHONPATH=%i/$PYTHON_LIB_SITE_PACKAGES:$PYTHONPATH \
-python setup.py install --prefix=%i
-find %i -name '*.egg-info' -exec rm {} \;
-find %i/$PYTHON_LIB_SITE_PACKAGES -name '*.py' -exec chmod a-x {} \;
-perl -p -i -e 's{^#!.*/python}{#!/usr/bin/env python}' %i/bin/*
+%install
+echo $PWD
+cp -r * %i/
 
 # Generate dependencies-setup.{sh,csh} so init.{sh,csh} picks full environment.
 mkdir -p %i/etc/profile.d
